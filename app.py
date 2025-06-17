@@ -1,15 +1,20 @@
 import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_from_directory, url_for # Ensure all are imported
 from werkzeug.utils import secure_filename
 import cv2
-import numpy as np # Import NumPy
+import numpy as np
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Ensure the upload folder exists
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
+
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/')
 def hello_world():
@@ -24,43 +29,45 @@ def analizar_imagen():
         return "No selected file", 400
     if file:
         try:
-            filename = secure_filename(file.filename)
+            filename = secure_filename(file.filename) # This is the original filename, secured
             original_image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(original_image_path)
 
             img = cv2.imread(original_image_path)
             if img is None:
+                # Optionally remove the saved file if it's unreadable
+                # os.remove(original_image_path)
                 return "Could not read image", 500
 
-            # Convert to float32 for calculations
             img_float = img.astype(np.float32)
-
-            # Split into B, G, R channels
-            # OpenCV loads images as BGR by default
             B, G, R = cv2.split(img_float)
 
-            # Calculate NDVI: (G - R) / (G + R)
-            # Add a small epsilon to the denominator to prevent division by zero if G+R is very close to 0,
-            # though explicit check is better.
             denominator = G + R
-            ndvi = np.zeros_like(G, dtype=np.float32) # Initialize NDVI array with zeros
-
-            # Avoid division by zero by only calculating where denominator is not zero
-            # Using np.true_divide or manual check
+            ndvi = np.zeros_like(G, dtype=np.float32)
             mask = denominator != 0
             ndvi[mask] = np.true_divide((G[mask] - R[mask]), denominator[mask])
 
-            # Normalize NDVI from [-1, 1] to [0, 255] and convert to 8-bit unsigned integer
-            # cv2.normalize will handle cases where ndvi is all zeros (min=max)
             normalized_ndvi = cv2.normalize(ndvi, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+            heatmap_ndvi = cv2.applyColorMap(normalized_ndvi, cv2.COLORMAP_JET)
 
-            processed_image_path = os.path.join(app.config['UPLOAD_FOLDER'], 'analisis_ndvi.jpg')
-            cv2.imwrite(processed_image_path, normalized_ndvi)
+            # Define a fixed name for the processed heatmap image for simplicity
+            processed_heatmap_filename = 'analisis_heatmap.jpg'
+            processed_image_path = os.path.join(app.config['UPLOAD_FOLDER'], processed_heatmap_filename)
+            cv2.imwrite(processed_image_path, heatmap_ndvi)
 
-            return "Imagen procesada con éxito. El Vigilante ha abierto los ojos."
+            original_url = url_for('uploaded_file', filename=filename)
+            heatmap_url = url_for('uploaded_file', filename=processed_heatmap_filename)
+
+            return render_template('resultado.html', original_image_url=original_url, processed_image_url=heatmap_url)
+
         except Exception as e:
-            print(f"Error processing image for NDVI: {e}") # Log specific error
-            return "Error processing image for NDVI analysis", 500
+            print(f"Error processing image for NDVI: {e}")
+            # It's good practice to clean up saved files if an error occurs mid-process
+            # if os.path.exists(original_image_path):
+            #     os.remove(original_image_path)
+            # if os.path.exists(processed_image_path): # Define processed_image_path outside try if used here
+            #     os.remove(processed_image_path)
+            return "Error processing image for NDVI analysis: " + str(e), 500
 
     return "Unknown error during image analysis", 500
 

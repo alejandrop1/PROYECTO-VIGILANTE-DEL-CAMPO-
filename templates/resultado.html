@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados del Análisis</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; text-align: center; }
+        .image-container { display: flex; justify-content: space-around; align-items: flex-start; margin-top: 20px; }
+        .image-block { border: 1px solid #ccc; padding: 10px; }
+        .image-block img { max-width: 400px; max-height: 400px; display: block; margin-bottom: 10px; }
+        .image-block p { font-size: 0.9em; color: #555; }
+    </style>
+</head>
+<body>
+    <h1>Resultados del Análisis del Vigilante</h1>
+
+    <div class="image-container">
+        <div class="image-block">
+            <h2>Imagen Original</h2>
+            {% if original_image_url %}
+                <img src="{{ original_image_url }}" alt="Imagen Original">
+            {% else %}
+                <p>No se pudo cargar la imagen original.</p>
+            {% endif %}
+        </div>
+        <div class="image-block">
+            <h2>Mapa de Calor NDVI</h2>
+            {% if processed_image_url %}
+                <img src="{{ processed_image_url }}" alt="Imagen Procesada NDVI">
+            {% else %}
+                <p>No se pudo cargar la imagen procesada.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <p><a href="{{ url_for('hello_world') }}">Realizar otro análisis</a></p>
+</body>
+</html>
