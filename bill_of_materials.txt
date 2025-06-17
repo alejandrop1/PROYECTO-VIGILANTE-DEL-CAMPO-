@@ -1,0 +1,42 @@
+# Conceptual Bill of Materials - Medium Voltage Urbanization Project
+
+## 1. Transformer
+   - Quantity: 1
+   - Type: Three-phase distribution transformer
+   - Capacity: 100 kVA
+   - Primary Voltage: 13.2 kV
+   - Secondary Voltage: 380Y/220V
+
+## 2. Medium Voltage Cable
+   - Type: Preassembled Aerial Cable (Aluminum, XLPE insulated), 3x35mm²
+   - Estimated Length: 120 meters (includes 114m route + extra for connections)
+
+## 3. Poles
+   - Type: Concrete or Treated Wood (suitable for MV preassembled cable)
+   - Estimated Quantity: 4 (assuming 1 for utility takeoff, 2 intermediate, 1 for transformer)
+   - Note: Actual quantity depends on final survey and span design.
+
+## 4. MV Fused Cutouts
+   - Quantity: 3 (one per phase)
+   - Voltage Rating: ~15 kV class
+   - Current Rating: To be sized based on transformer (e.g., 10A or 15A fuse links for 100kVA @ 13.2kV)
+
+## 5. MV Surge Arresters
+   - Quantity: 3 (one per phase)
+   - Voltage Rating: For 13.2 kV system (e.g., 12 kV MCOV)
+
+## 6. Insulators & Hardware
+   - Type: Suspension clamps, dead-end assemblies for 35mm² preassembled MV cable.
+   - Estimated Quantity: Sufficient for 4 poles and line termination at transformer.
+
+## 7. Grounding System
+   - Components: Grounding rods, copper grounding conductor, connectors.
+   - Purpose: For transformer neutral, transformer body, and surge arresters.
+
+## 8. Connectors & Accessories
+   - Components: MV cable lugs, connectors for tapping into existing line (if applicable), cable ties/straps.
+
+## Notes:
+   - This is a conceptual BOM and quantities are estimates.
+   - Specific models, brands, and detailed sizing require further engineering.
+   - Low voltage distribution components (cables, panels from transformer to lots) are not included here.

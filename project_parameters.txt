@@ -1,0 +1,11 @@
+Lot Count: 20
+Active Power per Lot (kW): 7
+Power Factor: 0.92
+Apparent Power per Lot (kVA): 7.61
+Simultaneity Factor: 0.5
+Medium Voltage (kV): 13.2
+Total Apparent Power (kVA): 76.1
+Transformer Configuration: Single Transformer for Urbanization
+Transformer Capacity (kVA): 100
+Transformer Primary Voltage (kV): 13.2
+Transformer Secondary Voltage (V): 380Y/220

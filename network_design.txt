@@ -1,0 +1,13 @@
+# Medium Voltage Network Design
+
+- Layout Type: Radial
+- Installation Method: Overhead
+
+## Conductor and Protection
+
+- Conductor Type: Preassembled Aerial Cable (Aluminum, XLPE insulated), 3x35mm²
+- Operating Voltage: 13.2 kV
+- Line Length (approx.): 114 meters
+- Overcurrent Protection: Fused Cutouts (Seccionador Fusible) at the transformer connection.
+- Overvoltage Protection: Surge Arresters at the transformer connection.
+- Line Components: Appropriate insulators and hardware for preassembled MV aerial cable.
