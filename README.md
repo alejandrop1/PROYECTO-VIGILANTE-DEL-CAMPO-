@@ -1,6 +1,6 @@
 # Vigilante del Campo
 
-This is a Flask web application.
+This is a Flask web application that performs NDVI (Normalized Difference Vegetation Index) analysis on uploaded images.
 
 ## Setup and Running
 

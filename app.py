@@ -2,12 +2,12 @@ import os
 from flask import Flask, render_template, request
 from werkzeug.utils import secure_filename
 import cv2
+import numpy as np # Import NumPy
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Ensure the upload folder exists
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
@@ -28,30 +28,41 @@ def analizar_imagen():
             original_image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(original_image_path)
 
-            # Process the image with OpenCV
             img = cv2.imread(original_image_path)
             if img is None:
-                return "Could not read image", 500 # Or 400 if client error
+                return "Could not read image", 500
 
-            gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            # Convert to float32 for calculations
+            img_float = img.astype(np.float32)
 
-            # Define the path for the processed image
-            base, ext = os.path.splitext(filename)
-            processed_filename = f"{base}_analisis_resultado{ext}"
-            if ext.lower() not in ['.jpg', '.jpeg', '.png']: # Ensure valid extension for saving
-                 processed_filename = f"{base}_analisis_resultado.jpg" # Default to .jpg
+            # Split into B, G, R channels
+            # OpenCV loads images as BGR by default
+            B, G, R = cv2.split(img_float)
 
-            processed_image_path = os.path.join(app.config['UPLOAD_FOLDER'], processed_filename)
+            # Calculate NDVI: (G - R) / (G + R)
+            # Add a small epsilon to the denominator to prevent division by zero if G+R is very close to 0,
+            # though explicit check is better.
+            denominator = G + R
+            ndvi = np.zeros_like(G, dtype=np.float32) # Initialize NDVI array with zeros
 
-            cv2.imwrite(processed_image_path, gray_img)
+            # Avoid division by zero by only calculating where denominator is not zero
+            # Using np.true_divide or manual check
+            mask = denominator != 0
+            ndvi[mask] = np.true_divide((G[mask] - R[mask]), denominator[mask])
+
+            # Normalize NDVI from [-1, 1] to [0, 255] and convert to 8-bit unsigned integer
+            # cv2.normalize will handle cases where ndvi is all zeros (min=max)
+            normalized_ndvi = cv2.normalize(ndvi, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
+            processed_image_path = os.path.join(app.config['UPLOAD_FOLDER'], 'analisis_ndvi.jpg')
+            cv2.imwrite(processed_image_path, normalized_ndvi)
 
             return "Imagen procesada con éxito. El Vigilante ha abierto los ojos."
         except Exception as e:
-            # Log the exception e for debugging
-            print(f"Error processing image: {e}")
-            return "Error processing image", 500
+            print(f"Error processing image for NDVI: {e}") # Log specific error
+            return "Error processing image for NDVI analysis", 500
 
-    return "Unknown error", 500
+    return "Unknown error during image analysis", 500
 
 if __name__ == '__main__':
     app.run(debug=True)
