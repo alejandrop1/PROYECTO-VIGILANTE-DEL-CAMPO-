@@ -7,5 +7,10 @@
 </head>
 <body>
     <h1>Hola, Vigilante del Campo!</h1>
+
+    <form action="/analizar" method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*" required>
+        <button type="submit">Analizar Imagen</button>
+    </form>
 </body>
 </html>
