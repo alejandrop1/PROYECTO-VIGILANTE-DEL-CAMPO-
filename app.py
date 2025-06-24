@@ -48,7 +48,30 @@ def analizar_imagen():
             ndvi[mask] = np.true_divide((G[mask] - R[mask]), denominator[mask])
 
             normalized_ndvi = cv2.normalize(ndvi, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-            heatmap_ndvi = cv2.applyColorMap(normalized_ndvi, cv2.COLORMAP_JET)
+           # --- INICIO DE NUEVO CÓDIGO PARA ESTADÍSTICAS ---
+# Normalizamos el array de NDVI a un rango de -1 a 1 para el cálculo
+ndvi_normalized = (ndvi_array.astype(np.float32) / 255.0) * 2.0 - 1.0
+
+# Umbrales para la clasificación
+saludable_threshold = 0.5
+estres_threshold = 0.2
+
+# Calcular el total de píxeles válidos
+total_pixels = np.count_nonzero(~np.isnan(ndvi_normalized))
+
+# Contar píxeles en cada categoría
+saludable_pixels = np.sum(ndvi_normalized > saludable_threshold)
+estres_pixels = np.sum((ndvi_normalized >= estres_threshold) & (ndvi_normalized <= saludable_threshold))
+suelo_pixels = np.sum(ndvi_normalized < estres_threshold)
+
+# Calcular porcentajes, evitando división por cero
+if total_pixels > 0:
+    porc_saludable = round((saludable_pixels / total_pixels) * 100, 2)
+    porc_estres = round((estres_pixels / total_pixels) * 100, 2)
+    porc_suelo = round((suelo_pixels / total_pixels) * 100, 2)
+else:
+    porc_saludable, porc_estres, porc_suelo = 0, 0, 0
+# --- FIN DE NUEVO CÓDIGO --- heatmap_ndvi = cv2.applyColorMap(normalized_ndvi, cv2.COLORMAP_JET)
 
             # Define a fixed name for the processed heatmap image for simplicity
             processed_heatmap_filename = 'analisis_heatmap.jpg'
@@ -57,8 +80,6 @@ def analizar_imagen():
 
             original_url = url_for('uploaded_file', filename=filename)
             heatmap_url = url_for('uploaded_file', filename=processed_heatmap_filename)
-
-            return render_template('resultado.html', original_image_url=original_url, processed_image_url=heatmap_url)
 
         except Exception as e:
             print(f"Error processing image for NDVI: {e}")
