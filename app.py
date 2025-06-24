@@ -5,7 +5,10 @@ import cv2
 import numpy as np
 
 app = Flask(__name__)
-UPLOAD_FOLDER = 'uploads'
+# Define la ruta absoluta para la carpeta de la aplicación
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+# Define la ruta absoluta para la carpeta de subidas
+UPLOAD_FOLDER = os.path.join(APP_ROOT, 'uploads/')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Ensure the upload folder exists
