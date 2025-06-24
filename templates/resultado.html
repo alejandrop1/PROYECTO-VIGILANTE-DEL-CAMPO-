@@ -14,7 +14,27 @@
 </head>
 <body>
     <h1>Resultados del Análisis del Vigilante</h1>
-
+<div style="margin-top: 40px; font-family: sans-serif; text-align: center;">
+  <h2>Resumen del Análisis Estadístico</h2>
+  <table border="1" style="margin-left: auto; margin-right: auto; border-collapse: collapse; width: 60%; font-size: 1.1em;">
+    <tr style="background-color: #f2f2f2;">
+      <th style="padding: 12px;">Categoría</th>
+      <th style="padding: 12px;">Porcentaje</th>
+    </tr>
+    <tr>
+      <td style="padding: 12px; background-color: #4CAF50; color: white;">✅ Vegetación Saludable</td>
+      <td style="padding: 12px; font-weight: bold;">{{ porc_saludable }} %</td>
+    </tr>
+    <tr>
+      <td style="padding: 12px; background-color: #FFC107;">⚠️ Vegetación con Estrés</td>
+      <td style="padding: 12px; font-weight: bold;">{{ porc_estres }} %</td>
+    </tr>
+    <tr>
+      <td style="padding: 12px; background-color: #f44336; color: white;">❌ Suelo o Baja Actividad</td>
+      <td style="padding: 12px; font-weight: bold;">{{ porc_suelo }} %</td>
+    </tr>
+  </table>
+</div>
     <div class="image-container">
         <div class="image-block">
             <h2>Imagen Original</h2>
