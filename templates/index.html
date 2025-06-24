@@ -1,16 +1,75 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vigilante del Campo</title>
+    <title>Resultados del Análisis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .image-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .image-block {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        img {
+            max-width: 400px;
+            height: auto;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hola, Vigilante del Campo!</h1>
 
-    <form action="/analizar" method="POST" enctype="multipart/form-data">
-        <input type="file" name="image" accept="image/*" required>
-        <button type="submit">Analizar Imagen</button>
-    </form>
+    <h1 style="text-align: center; font-family: sans-serif;">Resultados del Análisis del Vigilante</h1>
+
+    <div style="margin-top: 40px; font-family: sans-serif; text-align: center;">
+      <h2>Resumen del Análisis Estadístico</h2>
+      <table border="1" style="margin-left: auto; margin-right: auto; border-collapse: collapse; width: 60%; font-size: 1.1em;">
+        <tr style="background-color: #f2f2f2;">
+          <th style="padding: 12px;">Categoría</th>
+          <th style="padding: 12px;">Porcentaje</th>
+        </tr>
+        <tr>
+          <td style="padding: 12px; background-color: #4CAF50; color: white;">✅ Vegetación Saludable</td>
+          <td style="padding: 12px; font-weight: bold;">{{ porc_saludable }} %</td>
+        </tr>
+        <tr>
+          <td style="padding: 12px; background-color: #FFC107;">⚠️ Vegetación con Estrés</td>
+          <td style="padding: 12px; font-weight: bold;">{{ porc_estres }} %</td>
+        </tr>
+        <tr>
+          <td style="padding: 12px; background-color: #f44336; color: white;">❌ Suelo o Baja Actividad</td>
+          <td style="padding: 12px; font-weight: bold;">{{ porc_suelo }} %</td>
+        </tr>
+      </table>
+    </div>
+    <div class="image-container">
+        <div class="image-block">
+            <h3>Imagen Original</h3>
+            {% if original_image_url %}
+                <img src="{{ original_image_url }}" alt="Imagen Original">
+            {% else %}
+                <p>No se pudo cargar la imagen original.</p>
+            {% endif %}
+        </div>
+        <div class="image-block">
+            <h3>Mapa de Calor NDVI</h3>
+            {% if processed_image_url %}
+                <img src="{{ processed_image_url }}" alt="Mapa de Calor NDVI">
+            {% else %}
+                <p>No se pudo cargar la imagen procesada.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="/">Realizar otro análisis</a>
+    </div>
+
 </body>
 </html>
