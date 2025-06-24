@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, send_from_directory, url_for # Ensure all are imported
+from flask import Flask, render_template, request, send_from_directory, url_for
 from werkzeug.utils import secure_filename
 import cv2
 import numpy as np
@@ -29,68 +29,65 @@ def analizar_imagen():
         return "No selected file", 400
     if file:
         try:
-            filename = secure_filename(file.filename) # This is the original filename, secured
+            filename = secure_filename(file.filename)
             original_image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(original_image_path)
 
             img = cv2.imread(original_image_path)
             if img is None:
-                # Optionally remove the saved file if it's unreadable
-                # os.remove(original_image_path)
                 return "Could not read image", 500
 
+            # --- CÁLCULO DE NDVI ---
             img_float = img.astype(np.float32)
             B, G, R = cv2.split(img_float)
-
             denominator = G + R
             ndvi = np.zeros_like(G, dtype=np.float32)
             mask = denominator != 0
             ndvi[mask] = np.true_divide((G[mask] - R[mask]), denominator[mask])
 
+            # --- CÁLCULO DE ESTADÍSTICAS ---
+            # Umbrales para la clasificación
+            saludable_threshold = 0.5
+            estres_threshold = 0.2
+
+            # Calcular el total de píxeles válidos (ignorar bordes negros)
+            valid_pixels_mask = img.sum(axis=2) > 0 
+            total_valid_pixels = np.count_nonzero(valid_pixels_mask)
+
+            # Contar píxeles en cada categoría, solo en las zonas válidas
+            saludable_pixels = np.sum((ndvi > saludable_threshold) & valid_pixels_mask)
+            estres_pixels = np.sum((ndvi >= estres_threshold) & (ndvi <= saludable_threshold) & valid_pixels_mask)
+            suelo_pixels = np.sum((ndvi < estres_threshold) & valid_pixels_mask)
+
+            # Calcular porcentajes, evitando división por cero
+            if total_valid_pixels > 0:
+                porc_saludable = round((saludable_pixels / total_valid_pixels) * 100, 2)
+                porc_estres = round((estres_pixels / total_valid_pixels) * 100, 2)
+                porc_suelo = round((suelo_pixels / total_valid_pixels) * 100, 2)
+            else:
+                porc_saludable, porc_estres, porc_suelo = 0, 0, 0
+                
+            # --- CREACIÓN DE IMAGEN DE RESULTADO ---
             normalized_ndvi = cv2.normalize(ndvi, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-           # --- INICIO DE NUEVO CÓDIGO PARA ESTADÍSTICAS ---
-# Normalizamos el array de NDVI a un rango de -1 a 1 para el cálculo
-ndvi_normalized = (ndvi_array.astype(np.float32) / 255.0) * 2.0 - 1.0
+            heatmap_ndvi = cv2.applyColorMap(normalized_ndvi, cv2.COLORMAP_JET)
 
-# Umbrales para la clasificación
-saludable_threshold = 0.5
-estres_threshold = 0.2
+            heatmap_filename = 'analisis_heatmap.jpg'
+            heatmap_path = os.path.join(app.config['UPLOAD_FOLDER'], heatmap_filename)
+            cv2.imwrite(heatmap_path, heatmap_ndvi)
 
-# Calcular el total de píxeles válidos
-total_pixels = np.count_nonzero(~np.isnan(ndvi_normalized))
-
-# Contar píxeles en cada categoría
-saludable_pixels = np.sum(ndvi_normalized > saludable_threshold)
-estres_pixels = np.sum((ndvi_normalized >= estres_threshold) & (ndvi_normalized <= saludable_threshold))
-suelo_pixels = np.sum(ndvi_normalized < estres_threshold)
-
-# Calcular porcentajes, evitando división por cero
-if total_pixels > 0:
-    porc_saludable = round((saludable_pixels / total_pixels) * 100, 2)
-    porc_estres = round((estres_pixels / total_pixels) * 100, 2)
-    porc_suelo = round((suelo_pixels / total_pixels) * 100, 2)
-else:
-    porc_saludable, porc_estres, porc_suelo = 0, 0, 0
-# --- FIN DE NUEVO CÓDIGO --- heatmap_ndvi = cv2.applyColorMap(normalized_ndvi, cv2.COLORMAP_JET)
-
-            # Define a fixed name for the processed heatmap image for simplicity
-            processed_heatmap_filename = 'analisis_heatmap.jpg'
-            processed_image_path = os.path.join(app.config['UPLOAD_FOLDER'], processed_heatmap_filename)
-            cv2.imwrite(processed_image_path, heatmap_ndvi)
-
-            original_url = url_for('uploaded_file', filename=filename)
-            heatmap_url = url_for('uploaded_file', filename=processed_heatmap_filename)
+            # --- DEVOLVER RESULTADO A LA PÁGINA ---
+            return render_template('resultado.html', 
+                                   original_image=filename, 
+                                   processed_image=heatmap_filename, 
+                                   porc_saludable=porc_saludable, 
+                                   porc_estres=porc_estres, 
+                                   porc_suelo=porc_suelo)
 
         except Exception as e:
-            print(f"Error processing image for NDVI: {e}")
-            # It's good practice to clean up saved files if an error occurs mid-process
-            # if os.path.exists(original_image_path):
-            #     os.remove(original_image_path)
-            # if os.path.exists(processed_image_path): # Define processed_image_path outside try if used here
-            #     os.remove(processed_image_path)
-            return "Error processing image for NDVI analysis: " + str(e), 500
+            print(f"Error processing image: {e}")
+            return "Error durante el análisis de la imagen: " + str(e), 500
 
-    return "Unknown error during image analysis", 500
+    return "Error desconocido durante el análisis", 500
 
 if __name__ == '__main__':
     app.run(debug=True)
