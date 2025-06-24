@@ -21,7 +21,9 @@ def uploaded_file(filename):
 
 @app.route('/')
 def hello_world():
-    return render_template('index.html')
+    # Generar las URLs para mostrar las imágenes en la página
+original_url = url_for('uploaded_file', filename=filename)
+heatmap_url = url_for('uploaded_file', filename=heatmap_filename)return render_template('index.html')
 
 @app.route('/analizar', methods=['POST'])
 def analizar_imagen():
